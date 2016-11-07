@@ -4,8 +4,8 @@ import (
 	"fmt"
 )
 
-var program_name = "stack-vm"
-var program_version = "no-version"
+var programName = "stack-vm"
+var programVersion = "no-version"
 
 func main() {
 	fmt.Println(getProgramHeader())

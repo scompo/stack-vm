@@ -4,4 +4,6 @@ stack-vm is a simple stack virtual machine written in go.
 
 ## Documentation
 
-[stack-vm documentation on godoc.org](https://godoc.org/github.com/scompo/stack-vm)
+The documentation for this project can be found on [godoc.org](https://godoc.org) clicking the link below.
+
+[![GoDoc](https://godoc.org/github.com/scompo/stack-vm?status.svg)](https://godoc.org/github.com/scompo/stack-vm)

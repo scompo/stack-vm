@@ -12,5 +12,5 @@ func main() {
 }
 
 func getProgramHeader() string {
-	return fmt.Sprintf("%s (%s)", program_name, program_version)
+	return fmt.Sprintf("%s (%s)", programName, programVersion)
 }

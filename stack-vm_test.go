@@ -216,11 +216,11 @@ func TestGetParamNumber(t *testing.T) {
 		},
 		{
 			input:    HALT,
-			expected: NO_PARAMS,
+			expected: NoParams,
 		},
 		{
 			input:    NOP,
-			expected: NO_PARAMS,
+			expected: NoParams,
 		},
 		{
 			input:    PRINT,

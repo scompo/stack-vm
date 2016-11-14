@@ -14,11 +14,11 @@ var programVersion = "no-version"
 type VMWord int32
 
 // Default stack size.
-const defaultStackSize = 1024
+const x = 1024
 
 const (
 	// No parameters required for operand.
-	NO_PARAMS = 0
+	NoParams = 0
 	// One parameter required for operand.
 	ONE_PARAM = 1
 )
@@ -54,9 +54,9 @@ func Jump(vm *VM, addr int) (err error) {
 func GetParamNumber(op VMWord) (num int, err error) {
 	switch op {
 	case HALT:
-		num = NO_PARAMS
+		num = NoParams
 	case NOP:
-		num = NO_PARAMS
+		num = NoParams
 	case PRINT:
 		num = ONE_PARAM
 	default:

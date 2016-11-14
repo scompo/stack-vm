@@ -50,9 +50,9 @@ func Jump(vm *VM, addr int) (err error) {
 	return
 }
 
-// GetParamNumber returns the number of parameters for the specified operand.
+// GetParamsNumber returns the number of parameters for the specified operand.
 // Returns an error if the operand it's unknown.
-func GetParamNumber(op VMWord) (num int, err error) {
+func GetParamsNumber(op VMWord) (num int, err error) {
 	switch op {
 	case HALT:
 		num = NoParams
@@ -124,7 +124,7 @@ func Run(vm *VM) error {
 	var err error
 	var op = VMWord(-1)
 	for op, err = Fetch(vm); op != HALT && err == nil; op, err = Fetch(vm) {
-		nParams, err := GetParamNumber(op)
+		nParams, err := GetParamsNumber(op)
 		if err != nil {
 			return err
 		}

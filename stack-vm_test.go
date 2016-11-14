@@ -46,7 +46,7 @@ func TestJump(t *testing.T) {
 
 func TestDefaultVM(t *testing.T) {
 
-	vm := DefaultVm()
+	vm := DefaultVM()
 
 	validateVM(t, defaultStackSize, vm)
 }
@@ -115,7 +115,7 @@ func TestRun(t *testing.T) {
 
 func TestLoadParamsNone(t *testing.T) {
 	assert := assert.New(t)
-	vm := DefaultVm()
+	vm := DefaultVM()
 	LoadProgram(&vm, []VMWord{})
 	res, err := LoadParams(&vm,0)
 	assert.Equal(0, len(res))
@@ -126,7 +126,7 @@ func TestLoadParamsNone(t *testing.T) {
 
 func TestLoadParamsOne(t *testing.T) {
 	assert := assert.New(t)
-	vm := DefaultVm()
+	vm := DefaultVM()
 	LoadProgram(&vm, []VMWord{VMWord(0)})
 	res, err := LoadParams(&vm,1)
 	assert.Equal(1, len(res))
@@ -138,7 +138,7 @@ func TestLoadParamsOne(t *testing.T) {
 
 func TestLoadParamsError(t *testing.T) {
 	assert := assert.New(t)
-	vm := DefaultVm()
+	vm := DefaultVM()
 	_, err := LoadParams(&vm,1)
 	assert.EqualError(err, "program out of bounds")
 }
@@ -148,7 +148,7 @@ func TestExecuteUnknownOperand(t *testing.T) {
 
 	assert := assert.New(t)
 
-	vm := DefaultVm()
+	vm := DefaultVM()
 	err := Execute(&vm, VMWord(-1), make([]VMWord, 0))
 
 	assert.EqualError(err, "unknown operand")
@@ -158,7 +158,7 @@ func TestExecuteNop(t *testing.T) {
 
 	assert := assert.New(t)
 
-	vm := DefaultVm()
+	vm := DefaultVM()
 	err := Execute(&vm, NOP, make([]VMWord, 0))
 
 	assert.NoError(err)
@@ -170,7 +170,7 @@ func TestExecutePrint(t *testing.T) {
 
 	assert := assert.New(t)
 
-	vm := DefaultVm()
+	vm := DefaultVM()
 
 	myOut := new(bytes.Buffer)
 

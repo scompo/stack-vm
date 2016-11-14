@@ -17,26 +17,27 @@ type VMWord int32
 const defaultStackSize = 1024
 
 const (
-	// No parameters required for operand.
+	// NoParams it's used when an operand uses no params.
 	NoParams = 0
-	// One parameter required for operand.
+	// OneParam it's used when an operand requires a parameter.
 	OneParam = 1
 )
 
 var (
-	// Stops the VM, opcode 0.
+	// HALT stops the VM, opcode 0.
 	HALT = VMWord(0)
 
-	// No operation for the VM, opcode 1.
+	// NOP does no operation in the VM, opcode 1.
 	NOP = VMWord(1)
 
-	// Writes the top of the stack as a char.
+	// PRINT writes the top of the stack as a char to DefaultWriter.
 	PRINT = VMWord(2)
 )
 
+// DefaultWriter is the default writer for the VM.
 var DefaultWriter io.Writer = os.Stdout
 
-var unknownOperandError error = errors.New("unknown operand")
+var errUnknownOperand = errors.New("unknown operand")
 
 // Jump moves the program counter to the specified location.
 // Returns an error if the address is not in the progam memory bounds.
@@ -49,7 +50,7 @@ func Jump(vm *VM, addr int) (err error) {
 	return
 }
 
-// Returns the number of parameters for the specified operand.
+// GetParamNumber returns the number of parameters for the specified operand.
 // Returns an error if the operand it's unknown.
 func GetParamNumber(op VMWord) (num int, err error) {
 	switch op {
@@ -60,7 +61,7 @@ func GetParamNumber(op VMWord) (num int, err error) {
 	case PRINT:
 		num = OneParam
 	default:
-		err = unknownOperandError
+		err = errUnknownOperand
 	}
 	return
 }
@@ -104,8 +105,8 @@ func Pop(s *Stack) (elem VMWord, err error) {
 	return
 }
 
-// DefaultVm creates a new VM with stack size of defaultStackSize.
-func DefaultVm() VM {
+// DefaultVM creates a new VM with stack size of defaultStackSize.
+func DefaultVM() VM {
 	return NewVM(defaultStackSize)
 }
 
@@ -118,7 +119,7 @@ func NewVM(stackSize int) VM {
 	}
 }
 
-// Runs the program loaded in the VM.
+// Run runs the program loaded in the VM.
 func Run(vm *VM) error {
 	var err error
 	var op = VMWord(-1)
@@ -147,13 +148,14 @@ func Execute(vm *VM, op VMWord, params []VMWord) (err error) {
 	case PRINT:
 		fmt.Fprintf(vm.out, "%c", params[0])
 	default:
-		err = unknownOperandError
+		err = errUnknownOperand
 		return
 	}
 	return
 }
 
-// Fetch returns n params from the VM.
+// LoadParams loads n parameters from the proram memory of the machine
+// using Fetch.
 func LoadParams(vm *VM, n int) ([]VMWord, error) {
 	params := make([]VMWord, n)
 	for i := 0; i < n; i++ {

@@ -14,7 +14,7 @@ var programVersion = "no-version"
 type VMWord int32
 
 // Default stack size.
-const x = 1024
+const defaultStackSize = 1024
 
 const (
 	// No parameters required for operand.

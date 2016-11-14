@@ -105,7 +105,7 @@ func TestRun(t *testing.T) {
 	assert := assert.New(t)
 
 	vm := NewVM(0)
-	LoadProgram(&vm, []VMWord{NOP,HALT})
+	LoadProgram(&vm, []VMWord{NOP, HALT})
 	err := Run(&vm)
 
 	assert.NoError(err)
@@ -117,7 +117,7 @@ func TestLoadParamsNone(t *testing.T) {
 	assert := assert.New(t)
 	vm := DefaultVM()
 	LoadProgram(&vm, []VMWord{})
-	res, err := LoadParams(&vm,0)
+	res, err := LoadParams(&vm, 0)
 	assert.Equal(0, len(res))
 	assert.Equal(0, vm.pc)
 	assert.Equal(0, vm.stack.top)
@@ -128,7 +128,7 @@ func TestLoadParamsOne(t *testing.T) {
 	assert := assert.New(t)
 	vm := DefaultVM()
 	LoadProgram(&vm, []VMWord{VMWord(0)})
-	res, err := LoadParams(&vm,1)
+	res, err := LoadParams(&vm, 1)
 	assert.Equal(1, len(res))
 	assert.Equal(VMWord(0), res[0])
 	assert.Equal(1, vm.pc)
@@ -139,10 +139,9 @@ func TestLoadParamsOne(t *testing.T) {
 func TestLoadParamsError(t *testing.T) {
 	assert := assert.New(t)
 	vm := DefaultVM()
-	_, err := LoadParams(&vm,1)
+	_, err := LoadParams(&vm, 1)
 	assert.EqualError(err, "program out of bounds")
 }
-
 
 func TestExecuteUnknownOperand(t *testing.T) {
 
@@ -162,8 +161,209 @@ func TestExecuteNop(t *testing.T) {
 	err := Execute(&vm, NOP, make([]VMWord, 0))
 
 	assert.NoError(err)
-	assert.Equal(0, vm.pc)
 	assert.Equal(0, vm.stack.top)
+}
+
+func TestExecutePush(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+	err := Execute(&vm, PUSH, []VMWord{100})
+
+	assert.NoError(err)
+	assert.Equal(1, vm.stack.top)
+	assert.Equal(VMWord(100), vm.stack.items[0])
+}
+
+func TestExecutePop(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+	Push(&vm.stack, 10)
+
+	err := Execute(&vm, POP, make([]VMWord, 0))
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+}
+
+func TestExecuteJmp(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP, NOP})
+
+	Push(&vm.stack, 1)
+
+	err := Execute(&vm, JMP, make([]VMWord, 0))
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+	assert.Equal(1, vm.pc)
+}
+
+func TestExecuteJz(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP, NOP})
+
+	Push(&vm.stack, 0)
+
+	err := Execute(&vm, JZ, []VMWord{1})
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+	assert.Equal(1, vm.pc)
+}
+
+func TestExecuteJzEmptyStack(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP, NOP})
+
+	err := Execute(&vm, JZ, []VMWord{1})
+
+	assert.EqualError(err, "underflow")
+}
+
+func TestExecuteJzNotZero(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP, NOP})
+
+	Push(&vm.stack, 1)
+
+	err := Execute(&vm, JZ, []VMWord{1})
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+	assert.Equal(0, vm.pc)
+}
+
+func TestExecuteJnz(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP, NOP})
+
+	Push(&vm.stack, 0)
+
+	err := Execute(&vm, JNZ, []VMWord{1})
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+	assert.Equal(0, vm.pc)
+}
+
+func TestExecuteJnzEmptyStack(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP, NOP})
+
+	err := Execute(&vm, JNZ, []VMWord{1})
+
+	assert.EqualError(err, "underflow")
+}
+
+func TestExecuteJnzNotZero(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP, NOP})
+
+	Push(&vm.stack, 1)
+
+	err := Execute(&vm, JNZ, []VMWord{1})
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+	assert.Equal(1, vm.pc)
+}
+
+func TestExecuteJmpOutOfBounds(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP})
+
+	Push(&vm.stack, 2)
+
+	err := Execute(&vm, JMP, make([]VMWord, 0))
+
+	assert.EqualError(err, "jump out of memory bounds")
+}
+
+func TestExecuteJmpEmptyStack(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP})
+
+	err := Execute(&vm, JMP, make([]VMWord, 0))
+
+	assert.EqualError(err, "underflow")
+}
+
+func TestExecuteAdd(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+	Push(&vm.stack, 1)
+	Push(&vm.stack, 2)
+
+	err := Execute(&vm, ADD, make([]VMWord, 0))
+
+	assert.NoError(err)
+	assert.Equal(1, vm.stack.top)
+	assert.Equal(VMWord(3), vm.stack.items[0])
+}
+
+func TestExecuteAddNoFirstOperand(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	err := Execute(&vm, ADD, make([]VMWord, 0))
+
+	assert.EqualError(err, "underflow")
+}
+
+func TestExecuteAddNoSecondOperand(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+	Push(&vm.stack, 1)
+
+	err := Execute(&vm, ADD, make([]VMWord, 0))
+
+	assert.EqualError(err, "underflow")
 }
 
 func TestExecutePrint(t *testing.T) {
@@ -180,7 +380,6 @@ func TestExecutePrint(t *testing.T) {
 
 	assert.Equal("a", myOut.String())
 	assert.NoError(err)
-	assert.Equal(0, vm.pc)
 	assert.Equal(0, vm.stack.top)
 
 	vm.out = DefaultWriter
@@ -224,6 +423,30 @@ func TestGetParamsNumber(t *testing.T) {
 		},
 		{
 			input:    PRINT,
+			expected: OneParam,
+		},
+		{
+			input:    PUSH,
+			expected: OneParam,
+		},
+		{
+			input:    POP,
+			expected: NoParams,
+		},
+		{
+			input:    ADD,
+			expected: NoParams,
+		},
+		{
+			input:    JMP,
+			expected: NoParams,
+		},
+		{
+			input:    JZ,
+			expected: OneParam,
+		},
+		{
+			input:    JNZ,
 			expected: OneParam,
 		},
 	}

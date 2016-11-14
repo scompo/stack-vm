@@ -30,8 +30,27 @@ var (
 	// NOP does no operation in the VM, opcode 1.
 	NOP = VMWord(1)
 
-	// PRINT writes the top of the stack as a char to DefaultWriter.
+	// PRINT writes the top of the stack as a char to DefaultWriter, opcode 2.
 	PRINT = VMWord(2)
+
+	// PUSH pushes a value to the top of the stack, opcode 3.
+	PUSH = VMWord(3)
+
+	// POP pops a value from the top of the stack, opcode 4.
+	POP = VMWord(4)
+
+	// ADD adds 2 the 2 elements from the top of the stack and pushes the result,
+	// opcode 5.
+	ADD = VMWord(5)
+
+	// JMP jumps to the location pointed by the top of the stack, opcode 6.
+	JMP = VMWord(6)
+
+	// JZ jumps to a location if the top of the stack is zero, opcode 7.
+	JZ = VMWord(7)
+
+	// JNZ jumps to a location if the top of the stack is not zero, opcode 8.
+	JNZ = VMWord(8)
 )
 
 // DefaultWriter is the default writer for the VM.
@@ -59,6 +78,18 @@ func GetParamsNumber(op VMWord) (num int, err error) {
 	case NOP:
 		num = NoParams
 	case PRINT:
+		num = OneParam
+	case PUSH:
+		num = OneParam
+	case POP:
+		num = NoParams
+	case ADD:
+		num = NoParams
+	case JMP:
+		num = NoParams
+	case JZ:
+		num = OneParam
+	case JNZ:
 		num = OneParam
 	default:
 		err = errUnknownOperand
@@ -146,11 +177,55 @@ func Execute(vm *VM, op VMWord, params []VMWord) (err error) {
 	switch op {
 	case NOP:
 	case PRINT:
-		fmt.Fprintf(vm.out, "%c", params[0])
+		return Print(vm.out, params[0])
+	case PUSH:
+		return Push(&vm.stack, params[0])
+	case POP:
+		_, err = Pop(&vm.stack)
+	case ADD:
+		first, err := Pop(&vm.stack)
+		if err != nil {
+			return err
+		}
+		second, err := Pop(&vm.stack)
+		if err != nil {
+			return err
+		}
+		return Push(&vm.stack, first+second)
+	case JMP:
+		addr, err := Pop(&vm.stack)
+		if err != nil {
+			return err
+		}
+		return Jump(vm, int(addr))
+	case JZ:
+		value, err := Pop(&vm.stack)
+		if err != nil {
+			return err
+		} else {
+			if value == VMWord(0) {
+				return Jump(vm, int(params[0]))
+			}
+		}
+	case JNZ:
+		value, err := Pop(&vm.stack)
+		if err != nil {
+			return err
+		} else {
+			if value != VMWord(0) {
+				return Jump(vm, int(params[0]))
+			}
+		}
 	default:
 		err = errUnknownOperand
 		return
 	}
+	return
+}
+
+// Print prints to out the param as char.
+func Print(out io.Writer, param VMWord) (err error) {
+	_, err = fmt.Fprintf(out, "%c", param)
 	return
 }
 

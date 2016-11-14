@@ -20,7 +20,7 @@ const (
 	// No parameters required for operand.
 	NoParams = 0
 	// One parameter required for operand.
-	ONE_PARAM = 1
+	OneParam = 1
 )
 
 var (
@@ -58,7 +58,7 @@ func GetParamNumber(op VMWord) (num int, err error) {
 	case NOP:
 		num = NoParams
 	case PRINT:
-		num = ONE_PARAM
+		num = OneParam
 	default:
 		err = unknownOperandError
 	}

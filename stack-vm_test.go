@@ -224,7 +224,7 @@ func TestGetParamNumber(t *testing.T) {
 		},
 		{
 			input:    PRINT,
-			expected: ONE_PARAM,
+			expected: OneParam,
 		},
 	}
 	for _, test := range tests {

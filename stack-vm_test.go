@@ -48,7 +48,7 @@ func TestDefaultVM(t *testing.T) {
 
 	vm := DefaultVm()
 
-	validateVM(t, DEFAULT_STACK_SIZE, vm)
+	validateVM(t, defaultStackSize, vm)
 }
 
 func TestLoadProgram(t *testing.T) {

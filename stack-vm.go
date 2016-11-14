@@ -14,7 +14,7 @@ var programVersion = "no-version"
 type VMWord int32
 
 // Default stack size.
-const DEFAULT_STACK_SIZE = 1024
+const defaultStackSize = 1024
 
 const (
 	// No parameters required for operand.
@@ -104,9 +104,9 @@ func Pop(s *Stack) (elem VMWord, err error) {
 	return
 }
 
-// DefaultVm creates a new VM with stack size of DEFAULT_STACK_SIZE.
+// DefaultVm creates a new VM with stack size of defaultStackSize.
 func DefaultVm() VM {
-	return NewVM(DEFAULT_STACK_SIZE)
+	return NewVM(defaultStackSize)
 }
 
 // NewVM creates a new VM with stackSize stack size of stackSize.

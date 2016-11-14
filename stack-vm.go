@@ -34,7 +34,7 @@ var (
 	PRINT = VMWord(2)
 )
 
-var DEFAULT_WRITER io.Writer = os.Stdout
+var DefaultWriter io.Writer = os.Stdout
 
 var unknownOperandError error = errors.New("unknown operand")
 
@@ -112,7 +112,7 @@ func DefaultVm() VM {
 // NewVM creates a new VM with stackSize stack size of stackSize.
 func NewVM(stackSize int) VM {
 	return VM{
-		out:     DEFAULT_WRITER,
+		out:     DefaultWriter,
 		stack:   NewStack(stackSize),
 		program: []VMWord{},
 	}

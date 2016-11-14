@@ -183,7 +183,7 @@ func TestExecutePrint(t *testing.T) {
 	assert.Equal(0, vm.pc)
 	assert.Equal(0, vm.stack.top)
 
-	vm.out = DEFAULT_WRITER
+	vm.out = DefaultWriter
 }
 
 func TestNewVM(t *testing.T) {
@@ -196,7 +196,7 @@ func TestNewVM(t *testing.T) {
 func validateVM(t *testing.T, stackSize int, vm VM) {
 
 	assert.Equal(t, 0, vm.pc, "pc not initialized")
-	assert.Equal(t, DEFAULT_WRITER, vm.out, "default writer not set for out")
+	assert.Equal(t, DefaultWriter, vm.out, "default writer not set for out")
 
 	validateStack(t, stackSize, vm.stack)
 }

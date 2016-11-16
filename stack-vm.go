@@ -202,19 +202,18 @@ func Execute(vm *VM, op VMWord, params []VMWord) (err error) {
 		value, err := Pop(&vm.stack)
 		if err != nil {
 			return err
-		} else {
-			if value == VMWord(0) {
-				return Jump(vm, int(params[0]))
-			}
+		}
+		if value == VMWord(0) {
+			return Jump(vm, int(params[0]))
+
 		}
 	case JNZ:
 		value, err := Pop(&vm.stack)
 		if err != nil {
 			return err
-		} else {
-			if value != VMWord(0) {
-				return Jump(vm, int(params[0]))
-			}
+		}
+		if value != VMWord(0) {
+			return Jump(vm, int(params[0]))
 		}
 	default:
 		err = errUnknownOperand

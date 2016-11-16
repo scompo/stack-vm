@@ -325,7 +325,8 @@ func LoadProgram(vm *VM, program []VMWord) (err error) {
 // Returns an error if something bad happens.
 func ReadProgram(programReader SizedReader) ([]VMWord, error) {
 	prgSize := programReader.size / VMWordSize
-	if prgSize <= 0 {
+	remSize := programReader.size % VMWordSize
+	if prgSize <= 0 || remSize != 0 {
 		return make([]VMWord, 0), errors.New("bad program lenght")
 	}
 	result := make([]VMWord, prgSize)

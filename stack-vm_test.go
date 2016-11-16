@@ -597,6 +597,14 @@ func TestReadProgram(t *testing.T) {
 			inputProgram: []byte{0x0, 0x0, 0x0, 0x0},
 			wordProgram:  []VMWord{HALT},
 		},
+		{
+			inputProgram: []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
+			err:          "bad program lenght",
+		},
+		{
+			inputProgram: []byte{0x0, 0x0, 0x0},
+			err:          "bad program lenght",
+		},
 	}
 
 	assert := assert.New(t)

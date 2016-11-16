@@ -343,6 +343,31 @@ func TestExecuteAdd(t *testing.T) {
 	assert.Equal(VMWord(3), vm.stack.items[0])
 }
 
+func TestExecuteCall(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+	LoadProgram(&vm, []VMWord{NOP})
+
+	err := Execute(&vm, CALL, []VMWord{0})
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+	assert.Equal(1, vm.returnStack.top)
+	assert.Equal(VMWord(0), vm.returnStack.items[0])
+}
+
+func TestExecuteCallFullReturnStack(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := NewVM(0, 1)
+	Push(&vm.returnStack, 1)
+	err := Execute(&vm, CALL, []VMWord{0})
+	assert.EqualError(err, "overflow")
+}
+
 func TestExecuteAddNoFirstOperand(t *testing.T) {
 
 	assert := assert.New(t)
@@ -448,6 +473,10 @@ func TestGetParamsNumber(t *testing.T) {
 		},
 		{
 			input:    JNZ,
+			expected: OneParam,
+		},
+		{
+			input:    CALL,
 			expected: OneParam,
 		},
 	}

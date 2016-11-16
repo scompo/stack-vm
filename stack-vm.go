@@ -51,6 +51,9 @@ var (
 
 	// JNZ jumps to a location if the top of the stack is not zero, opcode 8.
 	JNZ = VMWord(8)
+
+	// CALL jumps to a function address, saving the current pc, opcode 9.
+	CALL = VMWord(9)
 )
 
 // DefaultWriter is the default writer for the VM.
@@ -90,6 +93,8 @@ func GetParamsNumber(op VMWord) (num int, err error) {
 	case JZ:
 		num = OneParam
 	case JNZ:
+		num = OneParam
+	case CALL:
 		num = OneParam
 	default:
 		err = errUnknownOperand
@@ -208,7 +213,6 @@ func Execute(vm *VM, op VMWord, params []VMWord) (err error) {
 		}
 		if value == VMWord(0) {
 			return Jump(vm, int(params[0]))
-
 		}
 	case JNZ:
 		value, err := Pop(&vm.stack)
@@ -218,6 +222,12 @@ func Execute(vm *VM, op VMWord, params []VMWord) (err error) {
 		if value != VMWord(0) {
 			return Jump(vm, int(params[0]))
 		}
+	case CALL:
+		err = Push(&vm.returnStack, VMWord(vm.pc))
+		if err != nil {
+			return err
+		}
+		return Jump(vm, int(params[0]))
 	default:
 		err = errUnknownOperand
 		return

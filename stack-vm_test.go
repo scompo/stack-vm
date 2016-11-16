@@ -374,9 +374,9 @@ func TestExecuteReturn(t *testing.T) {
 
 	vm := DefaultVM()
 
-	LoadProgram(&vm, []VMWord{NOP,NOP})
+	LoadProgram(&vm, []VMWord{NOP, NOP})
 
-	Push(&vm.returnStack,1)
+	Push(&vm.returnStack, 1)
 
 	err := Execute(&vm, RET, make([]VMWord, 0))
 
@@ -577,6 +577,55 @@ func validateStack(t *testing.T, stackSize int, stack Stack) {
 	for i := 0; i < stackSize; i++ {
 		assert.Equal(VMWord(0), stack.items[i], "item not initialized")
 	}
+}
+
+func TestReadProgram(t *testing.T) {
+	tests := []struct {
+		inputProgram []byte
+		wordProgram  []VMWord
+		err          string
+	}{
+		{
+			inputProgram: make([]byte, 0),
+			err:          "bad program lenght",
+		},
+		{
+			inputProgram: []byte{0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0},
+			wordProgram:  []VMWord{NOP, HALT},
+		},
+		{
+			inputProgram: []byte{0x0, 0x0, 0x0, 0x0},
+			wordProgram:  []VMWord{HALT},
+		},
+	}
+
+	assert := assert.New(t)
+	require := require.New(t)
+
+	for _, test := range tests {
+		br := bytes.NewReader(test.inputProgram)
+		programReader := SizedReader{
+			br,
+			br.Size(),
+		}
+		result, err := ReadProgram(programReader)
+		if test.err != "" {
+			assert.EqualError(err, test.err)
+		} else {
+			require.Equal(len(test.wordProgram), len(result), "bad program lenght")
+			for i, w := range test.wordProgram {
+				assert.Equal(w, result[i])
+			}
+		}
+	}
+}
+
+func TestNewSizedReader(t *testing.T) {
+	assert := assert.New(t)
+	r := bytes.NewReader(make([]byte, 1))
+	sr := NewSizedReader(r, 1)
+	assert.Equal(r, sr.r)
+	assert.Equal(int64(1), sr.size)
 }
 
 func TestGetProgramHeader(t *testing.T) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,21 @@ var programVersion = "no-version"
 
 // VMWord is a byte of the VM.
 type VMWord int32
+
+// VMWordSize is the size of a VMWord in bytes (4 bytes).
+const VMWordSize = 4
+
+// NewSizedReader returns a new SizedReader from a reader and it's size.
+func NewSizedReader(reader io.Reader, size int64) SizedReader {
+	sr := SizedReader{reader, size}
+	return sr
+}
+
+// SizedReader is a Reader but has a size.
+type SizedReader struct {
+	r    io.Reader
+	size int64
+}
 
 // Default stack size.
 const defaultStackSize = 1024
@@ -303,6 +319,18 @@ func LoadProgram(vm *VM, program []VMWord) (err error) {
 	}
 
 	return
+}
+
+// ReadProgram returns a slice of VMword from the programReader.
+// Returns an error if something bad happens.
+func ReadProgram(programReader SizedReader) ([]VMWord, error) {
+	prgSize := programReader.size / VMWordSize
+	if prgSize <= 0 {
+		return make([]VMWord, 0), errors.New("bad program lenght")
+	}
+	result := make([]VMWord, prgSize)
+	err := binary.Read(programReader.r, binary.BigEndian, &result)
+	return result, err
 }
 
 // entry point

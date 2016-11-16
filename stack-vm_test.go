@@ -368,6 +368,33 @@ func TestExecuteCallFullReturnStack(t *testing.T) {
 	assert.EqualError(err, "overflow")
 }
 
+func TestExecuteReturn(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+
+	LoadProgram(&vm, []VMWord{NOP,NOP})
+
+	Push(&vm.returnStack,1)
+
+	err := Execute(&vm, RET, make([]VMWord, 0))
+
+	assert.NoError(err)
+	assert.Equal(0, vm.stack.top)
+	assert.Equal(0, vm.returnStack.top)
+	assert.Equal(1, vm.pc)
+}
+
+func TestExecuteReturnEmptyReturnStack(t *testing.T) {
+
+	assert := assert.New(t)
+
+	vm := NewVM(0, 1)
+	err := Execute(&vm, RET, []VMWord{0})
+	assert.EqualError(err, "underflow")
+}
+
 func TestExecuteAddNoFirstOperand(t *testing.T) {
 
 	assert := assert.New(t)
@@ -478,6 +505,10 @@ func TestGetParamsNumber(t *testing.T) {
 		{
 			input:    CALL,
 			expected: OneParam,
+		},
+		{
+			input:    RET,
+			expected: NoParams,
 		},
 	}
 	for _, test := range tests {

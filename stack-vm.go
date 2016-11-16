@@ -54,6 +54,9 @@ var (
 
 	// CALL jumps to a function address, saving the current pc, opcode 9.
 	CALL = VMWord(9)
+
+	// RET returns from a function call retstoring the last pc, opcode 10.
+	RET = VMWord(10)
 )
 
 // DefaultWriter is the default writer for the VM.
@@ -96,6 +99,8 @@ func GetParamsNumber(op VMWord) (num int, err error) {
 		num = OneParam
 	case CALL:
 		num = OneParam
+	case RET:
+		num = NoParams
 	default:
 		err = errUnknownOperand
 	}
@@ -228,6 +233,12 @@ func Execute(vm *VM, op VMWord, params []VMWord) (err error) {
 			return err
 		}
 		return Jump(vm, int(params[0]))
+	case RET:
+		addr, err := Pop(&vm.returnStack)
+		if err != nil {
+			return err
+		}
+		return Jump(vm, int(addr))
 	default:
 		err = errUnknownOperand
 		return

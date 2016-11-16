@@ -136,17 +136,20 @@ func Pop(s *Stack) (elem VMWord, err error) {
 	return
 }
 
-// DefaultVM creates a new VM with stack size of defaultStackSize.
+// DefaultVM creates a new VM with stack and return stack size of
+// defaultStackSize.
 func DefaultVM() VM {
-	return NewVM(defaultStackSize)
+	return NewVM(defaultStackSize, defaultStackSize)
 }
 
-// NewVM creates a new VM with stackSize stack size of stackSize.
-func NewVM(stackSize int) VM {
+// NewVM creates a new VM with stack size of stackSize, and return stack
+// size of returnStackSize.
+func NewVM(stackSize int, returnStackSize int) VM {
 	return VM{
-		out:     DefaultWriter,
-		stack:   NewStack(stackSize),
-		program: []VMWord{},
+		out:         DefaultWriter,
+		stack:       NewStack(stackSize),
+		returnStack: NewStack(returnStackSize),
+		program:     []VMWord{},
 	}
 }
 
@@ -256,10 +259,11 @@ func Fetch(vm *VM) (op VMWord, err error) {
 
 // VM is a stack Virtual Machine.
 type VM struct {
-	out     io.Writer
-	stack   Stack
-	pc      int
-	program []VMWord
+	out         io.Writer
+	stack       Stack
+	returnStack Stack
+	pc          int
+	program     []VMWord
 }
 
 // LoadProgram loads a program into the VM.

@@ -30,7 +30,7 @@ func TestJump(t *testing.T) {
 
 	for _, test := range tests {
 
-		vm := NewVM(0)
+		vm := NewVM(0, 0)
 
 		LoadProgram(&vm, []VMWord{NOP, HALT})
 		err := Jump(&vm, test.input)
@@ -48,7 +48,7 @@ func TestDefaultVM(t *testing.T) {
 
 	vm := DefaultVM()
 
-	validateVM(t, defaultStackSize, vm)
+	validateVM(t, defaultStackSize, defaultStackSize, vm)
 }
 
 func TestLoadProgram(t *testing.T) {
@@ -74,7 +74,7 @@ func TestLoadProgram(t *testing.T) {
 
 	for _, test := range tests {
 
-		vm := NewVM(0)
+		vm := NewVM(0, 0)
 		err := LoadProgram(&vm, test.program)
 
 		if test.err != "" {
@@ -91,7 +91,7 @@ func TestLoadProgram(t *testing.T) {
 
 func TestFetch(t *testing.T) {
 	assert := assert.New(t)
-	vm := NewVM(0)
+	vm := NewVM(0, 0)
 	LoadProgram(&vm, []VMWord{HALT})
 	op, err := Fetch(&vm)
 	assert.NoError(err)
@@ -104,7 +104,7 @@ func TestFetch(t *testing.T) {
 func TestRun(t *testing.T) {
 	assert := assert.New(t)
 
-	vm := NewVM(0)
+	vm := NewVM(0, 0)
 	LoadProgram(&vm, []VMWord{NOP, HALT})
 	err := Run(&vm)
 
@@ -387,17 +387,18 @@ func TestExecutePrint(t *testing.T) {
 
 func TestNewVM(t *testing.T) {
 
-	vm := NewVM(1)
+	vm := NewVM(1, 1)
 
-	validateVM(t, 1, vm)
+	validateVM(t, 1, 1, vm)
 }
 
-func validateVM(t *testing.T, stackSize int, vm VM) {
+func validateVM(t *testing.T, stackSize int, returnStackSize int, vm VM) {
 
 	assert.Equal(t, 0, vm.pc, "pc not initialized")
 	assert.Equal(t, DefaultWriter, vm.out, "default writer not set for out")
 
 	validateStack(t, stackSize, vm.stack)
+	validateStack(t, returnStackSize, vm.returnStack)
 }
 
 func TestGetParamsNumber(t *testing.T) {

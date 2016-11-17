@@ -1,4 +1,4 @@
-package main
+package common
 
 import (
 	"encoding/binary"
@@ -8,29 +8,11 @@ import (
 	"os"
 )
 
-var programName = "stack-vm"
-var programVersion = "no-version"
-
 // VMWord is a byte of the VM.
 type VMWord int32
 
 // VMWordSize is the size of a VMWord in bytes (4 bytes).
 const VMWordSize = 4
-
-// NewSizedReader returns a new SizedReader from a reader and it's size.
-func NewSizedReader(reader io.Reader, size int64) SizedReader {
-	sr := SizedReader{reader, size}
-	return sr
-}
-
-// SizedReader is a Reader but has a size.
-type SizedReader struct {
-	r    io.Reader
-	size int64
-}
-
-// Default stack size.
-const defaultStackSize = 1024
 
 const (
 	// NoParams it's used when an operand uses no params.
@@ -75,6 +57,9 @@ var (
 	RET = VMWord(10)
 )
 
+// Default stack size.
+const defaultStackSize = 1024
+
 // DefaultWriter is the default writer for the VM.
 var DefaultWriter io.Writer = os.Stdout
 
@@ -100,7 +85,7 @@ func GetParamsNumber(op VMWord) (num int, err error) {
 	case NOP:
 		num = NoParams
 	case PRINT:
-		num = OneParam
+		num = NoParams
 	case PUSH:
 		num = OneParam
 	case POP:
@@ -120,45 +105,6 @@ func GetParamsNumber(op VMWord) (num int, err error) {
 	default:
 		err = errUnknownOperand
 	}
-	return
-}
-
-// NewStack returns a new stack with the specified stack size.
-func NewStack(stackSize int) Stack {
-	return Stack{
-		size:  stackSize,
-		top:   0,
-		items: make([]VMWord, stackSize),
-	}
-}
-
-// Stack is the stack of the VM.
-type Stack struct {
-	size  int
-	top   int
-	items []VMWord
-}
-
-// Push adds an element and increments the top index, after checking
-// for overflow.
-func Push(s *Stack, elem VMWord) (err error) {
-	if s.top == s.size {
-		return errors.New("overflow")
-	}
-	s.items[s.top] = elem
-	s.top = s.top + 1
-	return
-}
-
-// Pop decrements the top index after checking for underflow
-// and returns the item that was previously the top one.
-func Pop(s *Stack) (elem VMWord, err error) {
-	if s.top == 0 {
-		err = errors.New("underflow")
-		return
-	}
-	s.top = s.top - 1
-	elem = s.items[s.top]
 	return
 }
 
@@ -206,7 +152,11 @@ func Execute(vm *VM, op VMWord, params []VMWord) (err error) {
 	switch op {
 	case NOP:
 	case PRINT:
-		return Print(vm.out, params[0])
+		data, err := Pop(&vm.stack)
+		if err != nil {
+			return err
+		}
+		return Print(vm.out, data)
 	case PUSH:
 		return Push(&vm.stack, params[0])
 	case POP:
@@ -324,21 +274,12 @@ func LoadProgram(vm *VM, program []VMWord) (err error) {
 // ReadProgram returns a slice of VMword from the programReader.
 // Returns an error if something bad happens.
 func ReadProgram(programReader SizedReader) ([]VMWord, error) {
-	prgSize := programReader.size / VMWordSize
-	remSize := programReader.size % VMWordSize
+	prgSize := programReader.Size / VMWordSize
+	remSize := programReader.Size % VMWordSize
 	if prgSize <= 0 || remSize != 0 {
 		return make([]VMWord, 0), errors.New("bad program lenght")
 	}
 	result := make([]VMWord, prgSize)
-	err := binary.Read(programReader.r, binary.BigEndian, &result)
+	err := binary.Read(programReader.R, binary.BigEndian, &result)
 	return result, err
-}
-
-// entry point
-func main() {
-	fmt.Println(getProgramHeader())
-}
-
-func getProgramHeader() string {
-	return fmt.Sprintf("%s (%s)", programName, programVersion)
 }

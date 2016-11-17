@@ -1,4 +1,4 @@
-package main
+package common
 
 import (
 	"bytes"
@@ -110,6 +110,17 @@ func TestRun(t *testing.T) {
 
 	assert.NoError(err)
 	assert.Equal(2, vm.pc)
+	assert.Equal(0, vm.stack.top)
+}
+
+func TestRun2(t *testing.T) {
+	assert := assert.New(t)
+
+	vm := DefaultVM()
+	LoadProgram(&vm, []VMWord{PUSH, VMWord(1), PUSH, VMWord(1), ADD, PRINT, HALT})
+	err := Run(&vm)
+	assert.NoError(err)
+	assert.Equal(7, vm.pc)
 	assert.Equal(0, vm.stack.top)
 }
 
@@ -428,7 +439,9 @@ func TestExecutePrint(t *testing.T) {
 
 	vm.out = myOut
 
-	err := Execute(&vm, PRINT, []VMWord{VMWord('a')})
+	Push(&vm.stack, VMWord('a'))
+
+	err := Execute(&vm, PRINT, []VMWord{})
 
 	assert.Equal("a", myOut.String())
 	assert.NoError(err)
@@ -476,7 +489,7 @@ func TestGetParamsNumber(t *testing.T) {
 		},
 		{
 			input:    PRINT,
-			expected: OneParam,
+			expected: NoParams,
 		},
 		{
 			input:    PUSH,
@@ -524,61 +537,6 @@ func TestGetParamsNumber(t *testing.T) {
 	}
 }
 
-func TestPush(t *testing.T) {
-
-	assert := assert.New(t)
-
-	s := NewStack(1)
-	err := Push(&s, 1)
-
-	assert.Equal(1, s.top, "top not updated")
-	assert.Equal(VMWord(1), s.items[0], "item not pushed")
-	assert.Nil(err)
-
-	err = Push(&s, 0)
-
-	assert.EqualError(err, "overflow")
-}
-
-func TestPop(t *testing.T) {
-
-	assert := assert.New(t)
-
-	s := NewStack(1)
-	Push(&s, 1)
-	res, err := Pop(&s)
-
-	assert.Equal(0, s.top, "top not updated")
-	assert.Nil(err)
-	assert.Equal(VMWord(1), res, "bad element returned")
-
-	_, err = Pop(&s)
-
-	assert.EqualError(err, "underflow")
-}
-
-func TestNewStack(t *testing.T) {
-
-	stackSize := 1
-	res := NewStack(stackSize)
-
-	validateStack(t, stackSize, res)
-}
-
-func validateStack(t *testing.T, stackSize int, stack Stack) {
-
-	assert := assert.New(t)
-	require := require.New(t)
-
-	require.NotNil(stack, "stack not initialized")
-	assert.Equal(stackSize, stack.size, "bad res.maxSize")
-	assert.Equal(stackSize, len(stack.items), "bad items lenght")
-	require.Equal(0, stack.top, "bad top value")
-	for i := 0; i < stackSize; i++ {
-		assert.Equal(VMWord(0), stack.items[i], "item not initialized")
-	}
-}
-
 func TestReadProgram(t *testing.T) {
 	tests := []struct {
 		inputProgram []byte
@@ -592,6 +550,10 @@ func TestReadProgram(t *testing.T) {
 		{
 			inputProgram: []byte{0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0},
 			wordProgram:  []VMWord{NOP, HALT},
+		},
+		{
+			inputProgram: []byte{0x0, 0x0, 0x0, 0x3, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x3, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0, 0x5, 0x0, 0x0, 0x0, 0x2, 0x0, 0x0, 0x0, 0x0},
+			wordProgram:  []VMWord{PUSH, VMWord(1), PUSH, VMWord(1), ADD, PRINT, HALT},
 		},
 		{
 			inputProgram: []byte{0x0, 0x0, 0x0, 0x0},
@@ -626,18 +588,4 @@ func TestReadProgram(t *testing.T) {
 			}
 		}
 	}
-}
-
-func TestNewSizedReader(t *testing.T) {
-	assert := assert.New(t)
-	r := bytes.NewReader(make([]byte, 1))
-	sr := NewSizedReader(r, 1)
-	assert.Equal(r, sr.r)
-	assert.Equal(int64(1), sr.size)
-}
-
-func TestGetProgramHeader(t *testing.T) {
-	expected := "stack-vm (no-version)"
-	result := getProgramHeader()
-	assert.Equal(t, expected, result)
 }
